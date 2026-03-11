@@ -10,22 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download repo
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Rotate key
         run: |
-          mapfile -t keys < key.txt
-
-          if [ ! -f index.txt ]; then
-            echo 0 > index.txt
-          fi
-
+          keys=($(cat key.txt))
           index=$(cat index.txt)
+
           next=$(( (index + 1) % ${#keys[@]} ))
 
-          echo ${keys[$next]} > currentkey.txt
-          echo $next > index.txt
+          echo "${keys[$next]}" > currentkey.txt
+          echo "$next" > index.txt
 
       - name: Commit changes
         run: |
