@@ -1,0 +1,36 @@
+name: Rotate Key
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  rotate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repo
+        uses: actions/checkout@v3
+
+      - name: Rotate key
+        run: |
+          mapfile -t keys < key.txt
+
+          if [ ! -f index.txt ]; then
+            echo 0 > index.txt
+          fi
+
+          index=$(cat index.txt)
+          next=$(( (index + 1) % ${#keys[@]} ))
+
+          echo ${keys[$next]} > currentkey.txt
+          echo $next > index.txt
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add currentkey.txt index.txt
+          git commit -m "Rotate key"
+          git push
